@@ -72,10 +72,12 @@ Goal: 交付 `Selector` / `Selectors` 核心能力，使固定 HTML fixtures 上
 - 2026-03-08 Green 6: `powershell -File scripts/run_godot_tests.ps1 -Suite parser` → `PASS` / exit code `0` (smoke + navigation + text search + regex extract + content access + find_similar)
 - 2026-03-08 Red 7: `powershell -File scripts/run_godot_tests.ps1 -Suite parser` → `FAIL: Selector must expose find()`
 - 2026-03-08 Green 7: `powershell -File scripts/run_godot_tests.ps1 -Suite parser` → `PASS` / exit code `0` (smoke + navigation + text search + regex extract + content access + find_similar + find/find_all)
+- 2026-03-08 Red 8: `powershell -File scripts/run_godot_tests.ps1 -Suite parser` → `_init expected 3 argument(s), called with 4` (adaptive constructor gap)
 ## Notes`n`n- 由于 Godot `Object.get` 与源项目 `get()` 命名冲突，内容读取在当前实现中使用 Godot-safe aliases：`get_text()` / `get_all_text()`。`n`n## Risks
 
 - `lxml` / `cssselect` 语义在 GDScript 中没有现成对照物，必须先锁定支持子集再扩展。
 - XPath 支持范围如果不先定义，会导致计划漂移；需要以源测试覆盖范围为首版边界。
+
 
 
 
