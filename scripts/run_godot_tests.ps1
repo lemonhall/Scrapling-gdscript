@@ -69,36 +69,57 @@ function Start-FetcherFixtureServer {
   if ([string]::IsNullOrWhiteSpace($env:SCRAPLING_FIXTURE_BASE_URL)) {
     $env:SCRAPLING_FIXTURE_BASE_URL = 'http://127.0.0.1:8765'
   }
+  if ([string]::IsNullOrWhiteSpace($env:SCRAPLING_PROXY_FIXTURE_A_URL)) {
+    $env:SCRAPLING_PROXY_FIXTURE_A_URL = 'http://127.0.0.1:8766'
+  }
+  if ([string]::IsNullOrWhiteSpace($env:SCRAPLING_PROXY_FIXTURE_B_URL)) {
+    $env:SCRAPLING_PROXY_FIXTURE_B_URL = 'http://127.0.0.1:8767'
+  }
+  if ([string]::IsNullOrWhiteSpace($env:SCRAPLING_PROXY_TARGET_URL)) {
+    $env:SCRAPLING_PROXY_TARGET_URL = 'http://proxy-target.local/proxy-check'
+  }
 
   $scriptPath = Join-Path $RootDir 'scripts\http_fixture_server.py'
   if (!(Test-Path $scriptPath)) {
     throw "Missing fixture server script: $scriptPath"
   }
 
-  $outLog = Join-Path $RootDir '.godot-fetcher-fixture.out.log'
-  $errLog = Join-Path $RootDir '.godot-fetcher-fixture.err.log'
-  if (Test-Path $outLog) { Remove-Item $outLog -Force }
-  if (Test-Path $errLog) { Remove-Item $errLog -Force }
+  function Start-FixtureInstance {
+    Param(
+      [Parameter(Mandatory = $true)][string[]]$ArgumentList,
+      [Parameter(Mandatory = $true)][string]$HealthUrl,
+      [Parameter(Mandatory = $true)][string]$OutLog,
+      [Parameter(Mandatory = $true)][string]$ErrLog
+    )
 
-  $proc = Start-Process -FilePath 'python' -ArgumentList @($scriptPath, '--host', '127.0.0.1', '--port', '8765') -WorkingDirectory $RootDir -PassThru -WindowStyle Hidden -RedirectStandardOutput $outLog -RedirectStandardError $errLog
-  for ($i = 0; $i -lt 50; $i++) {
-    Start-Sleep -Milliseconds 100
-    try {
-      $resp = Invoke-WebRequest -Uri ($env:SCRAPLING_FIXTURE_BASE_URL + '/hello') -UseBasicParsing -TimeoutSec 2
-      if ($resp.StatusCode -eq 200) {
-        return @{ process = $proc; out_log = $outLog; err_log = $errLog }
+    if (Test-Path $OutLog) { Remove-Item $OutLog -Force }
+    if (Test-Path $ErrLog) { Remove-Item $ErrLog -Force }
+
+    $proc = Start-Process -FilePath 'python' -ArgumentList $ArgumentList -WorkingDirectory $RootDir -PassThru -WindowStyle Hidden -RedirectStandardOutput $OutLog -RedirectStandardError $ErrLog
+    for ($i = 0; $i -lt 50; $i++) {
+      Start-Sleep -Milliseconds 100
+      try {
+        $resp = Invoke-WebRequest -Uri $HealthUrl -UseBasicParsing -TimeoutSec 2
+        if ($resp.StatusCode -eq 200) {
+          return @{ process = $proc; out_log = $OutLog; err_log = $ErrLog }
+        }
+      } catch {
       }
-    } catch {
+      if ($proc.HasExited) {
+        break
+      }
     }
-    if ($proc.HasExited) {
-      break
+
+    if (-not $proc.HasExited) {
+      try { Stop-Process -Id $proc.Id -Force } catch {}
     }
+    throw ("Fixture server failed to start: {0}" -f $HealthUrl)
   }
 
-  if (-not $proc.HasExited) {
-    try { Stop-Process -Id $proc.Id -Force } catch {}
-  }
-  throw 'Fixture server failed to start'
+  $originHandle = Start-FixtureInstance -ArgumentList @($scriptPath, '--host', '127.0.0.1', '--port', '8765', '--mode', 'origin') -HealthUrl ($env:SCRAPLING_FIXTURE_BASE_URL + '/hello') -OutLog (Join-Path $RootDir '.godot-fetcher-fixture.out.log') -ErrLog (Join-Path $RootDir '.godot-fetcher-fixture.err.log')
+  $proxyAHandle = Start-FixtureInstance -ArgumentList @($scriptPath, '--host', '127.0.0.1', '--port', '8766', '--mode', 'proxy', '--label', 'proxy-a') -HealthUrl ($env:SCRAPLING_PROXY_FIXTURE_A_URL + '/proxy-check') -OutLog (Join-Path $RootDir '.godot-proxy-fixture-a.out.log') -ErrLog (Join-Path $RootDir '.godot-proxy-fixture-a.err.log')
+  $proxyBHandle = Start-FixtureInstance -ArgumentList @($scriptPath, '--host', '127.0.0.1', '--port', '8767', '--mode', 'proxy', '--label', 'proxy-b') -HealthUrl ($env:SCRAPLING_PROXY_FIXTURE_B_URL + '/proxy-check') -OutLog (Join-Path $RootDir '.godot-proxy-fixture-b.out.log') -ErrLog (Join-Path $RootDir '.godot-proxy-fixture-b.err.log')
+  return @{ handles = @($originHandle, $proxyAHandle, $proxyBHandle) }
 }
 
 function Stop-FetcherFixtureServer {
@@ -109,9 +130,17 @@ function Stop-FetcherFixtureServer {
   if ($null -eq $ServerHandle) {
     return
   }
-  $proc = $ServerHandle.process
-  if ($null -ne $proc -and -not $proc.HasExited) {
-    try { Stop-Process -Id $proc.Id -Force } catch {}
+  $handles = @()
+  if ($ServerHandle.ContainsKey('handles')) {
+    $handles = $ServerHandle.handles
+  } else {
+    $handles = @($ServerHandle)
+  }
+  foreach ($handle in $handles) {
+    $proc = $handle.process
+    if ($null -ne $proc -and -not $proc.HasExited) {
+      try { Stop-Process -Id $proc.Id -Force } catch {}
+    }
   }
 }
 

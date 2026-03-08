@@ -4,6 +4,9 @@ import argparse
 import json
 from urllib.parse import parse_qs, urlparse
 
+MODE = "origin"
+PROXY_LABEL = "proxy"
+
 
 class Handler(BaseHTTPRequestHandler):
     def _send(self, status: int, body: bytes, content_type: str = "application/json; charset=utf-8", extra_headers: dict | None = None) -> None:
@@ -18,6 +21,19 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        if MODE == "proxy":
+            if parsed.path == "/proxy-check":
+                payload = json.dumps({
+                    "via_proxy": True,
+                    "proxy_label": PROXY_LABEL,
+                    "target": self.path,
+                    "method": "GET",
+                }).encode("utf-8")
+                self._send(200, payload)
+                return
+            payload = json.dumps({"error": "proxy route not found", "path": self.path}).encode("utf-8")
+            self._send(404, payload)
+            return
         if parsed.path == "/hello":
             payload = json.dumps({"message": "hello from fixture"}).encode("utf-8")
             self._send(200, payload)
@@ -88,6 +104,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--mode", choices=["origin", "proxy"], default="origin")
+    parser.add_argument("--label", default="proxy")
     args = parser.parse_args()
+    MODE = args.mode
+    PROXY_LABEL = args.label
     server = HTTPServer((args.host, args.port), Handler)
     server.serve_forever()

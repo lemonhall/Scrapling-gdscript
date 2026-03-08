@@ -14,29 +14,30 @@ func _init(default_headers: Dictionary = {}, cookie_jar_path: String = "") -> vo
 	_cookie_jar_path = cookie_jar_path
 
 
-func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
-	return _curl_request(url, "GET", "", params, headers, cookies)
+func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
+	return _curl_request(url, "GET", "", params, headers, cookies, proxy, proxy_rotator)
 
 
-func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
-	return _curl_request(url, "POST", body, params, headers, cookies)
+func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
+	return _curl_request(url, "POST", body, params, headers, cookies, proxy, proxy_rotator)
 
 
-func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
-	return _curl_request(url, "PUT", body, params, headers, cookies)
+func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
+	return _curl_request(url, "PUT", body, params, headers, cookies, proxy, proxy_rotator)
 
 
-func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
-	return _curl_request(url, "DELETE", body, params, headers, cookies)
+func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
+	return _curl_request(url, "DELETE", body, params, headers, cookies, proxy, proxy_rotator)
 
 
-func _curl_request(url: String, method: String, body: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
+func _curl_request(url: String, method: String, body: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
 	var output: Array = []
 	var request_url := _append_query_params(url, params)
 	var args: Array = ["-sS", "-X", method]
 	_append_header_args(args, _merge_headers(headers))
 	_append_cookie_jar_args(args)
 	_append_cookie_args(args, cookies)
+	_append_proxy_args(args, _resolve_proxy(proxy, proxy_rotator))
 	var temp_body_path := ""
 	if _should_send_body(method, body):
 		temp_body_path = _write_request_body_file(body)
@@ -114,4 +115,29 @@ func _append_cookie_args(args: Array, cookies: Dictionary) -> void:
 	for key in cookies.keys():
 		parts.append("%s=%s" % [str(key), str(cookies[key])])
 	args.append_array(["-b", "; ".join(parts)])
+
+
+func _resolve_proxy(proxy: Variant, proxy_rotator: Variant) -> Variant:
+	if proxy_rotator != null and proxy_rotator.has_method("resolve_proxy"):
+		return proxy_rotator.call("resolve_proxy", proxy)
+	return proxy
+
+
+func _append_proxy_args(args: Array, proxy: Variant) -> void:
+	if proxy == null:
+		return
+	if proxy is String:
+		if String(proxy) == "":
+			return
+		args.append_array(["-x", String(proxy)])
+		return
+	if proxy is Dictionary:
+		var server := str(proxy.get("server", ""))
+		if server == "":
+			return
+		args.append_array(["-x", server])
+		var username := str(proxy.get("username", ""))
+		var password := str(proxy.get("password", ""))
+		if username != "" or password != "":
+			args.append_array(["-U", "%s:%s" % [username, password]])
 

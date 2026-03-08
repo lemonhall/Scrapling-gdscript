@@ -41,6 +41,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `tests/fetchers/static/test_fetcher_cookies.gd`
 - `tests/fetchers/static/test_fetcher_session.gd`
 - `tests/fetchers/static/test_proxy_rotator.gd`
+- `tests/fetchers/static/test_fetcher_proxy_flow.gd`
 - `scripts/http_fixture_server.py`
 
 ## Steps
@@ -76,6 +77,8 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - 2026-03-08 Green 6: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（显式 `cookies` + 全部现有静态 fetcher 覆盖）
 - 2026-03-08 Red 8: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `FAIL: Failed to load res://addons/scrapling/fetchers/ProxyRotator.gd`
 - 2026-03-08 Green 7: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（`ProxyRotator` cyclic rotation + per-request override 逻辑）
+- 2026-03-08 Red 9: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_fetcher_proxy_flow.gd -TimeoutSec 25` → `FAIL: SCRAPLING_PROXY_FIXTURE_A_URL must be set for proxy tests`
+- 2026-03-08 Green 8: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（origin fixture + proxy-a/proxy-b fixture + 真实代理链路）
 
 ## Notes
 
@@ -84,7 +87,8 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - 当前 `headers` 通过重复 `-H` 传给 `curl.exe`，`params` 通过 URL query string 显式拼接并做 `uri_encode()`。
 - `FetcherSession` 当前通过 `curl.exe -b/-c <cookie-jar>` 实现跨请求 cookie 持久化。
 - 显式 `cookies` 当前通过额外 `curl.exe -b "k=v; ..."` 透传到请求。
-- `ProxyRotator` 当前先完成纯 GDScript 的 cyclic rotation 与 per-request override 逻辑；真实代理接入仍待把 rotator 结果喂进 fetcher 请求层。
+- `ProxyRotator` 当前已接入 fetcher 请求层；`fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()` 支持 per-request `proxy` 和 `proxy_rotator`。
+- `scripts/run_godot_tests.ps1` 当前会自动拉起一个 origin fixture 和两个 proxy fixture，分别验证 per-request override 与 cyclic rotation 的真实链路。
 - POST JSON 当前通过临时文件 + `curl.exe --data-binary` 发送，避免 `OS.execute(...)` 直传 JSON 字面量时丢失引号。
 
 ## Risks

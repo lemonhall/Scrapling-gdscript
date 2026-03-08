@@ -12,20 +12,20 @@ func _init(default_headers: Dictionary = {}) -> void:
 	_fetcher = FetcherScript.new(default_headers, _cookie_jar_path)
 
 
-func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
-	return _fetcher.fetch_get(url, params, headers, cookies)
+func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
+	return _fetcher.fetch_get(url, params, headers, cookies, proxy, proxy_rotator)
 
 
-func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
-	return _fetcher.fetch_post(url, body, params, headers, cookies)
+func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
+	return _fetcher.fetch_post(url, body, params, headers, cookies, proxy, proxy_rotator)
 
 
-func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
-	return _fetcher.fetch_put(url, body, params, headers, cookies)
+func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
+	return _fetcher.fetch_put(url, body, params, headers, cookies, proxy, proxy_rotator)
 
 
-func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
-	return _fetcher.fetch_delete(url, body, params, headers, cookies)
+func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
+	return _fetcher.fetch_delete(url, body, params, headers, cookies, proxy, proxy_rotator)
 
 
 func close() -> void:

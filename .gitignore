@@ -1,2 +1,6 @@
 .godot-fetcher-fixture.err.log
 .godot-fetcher-fixture.out.log
+.godot-proxy-fixture-a.err.log
+.godot-proxy-fixture-a.out.log
+.godot-proxy-fixture-b.err.log
+.godot-proxy-fixture-b.out.log
