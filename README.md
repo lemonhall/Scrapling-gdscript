@@ -24,7 +24,7 @@
 - 已完成：文档基线、源项目能力盘点、PRD、v1 计划矩阵。
 - 已完成：`Godot 4.6` 工程骨架、插件元数据、PowerShell headless 测试脚本、foundation smoke test。
 - 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite foundation` 返回 `PASS`。
-- 进行中：Parser / Selector 等价层尚未开始实现。
+- 进行中：Parser / Selector 已完成最小 smoke green，完整查询/导航/自适应能力仍待扩展。
 
 ## 当前目录
 
@@ -57,3 +57,4 @@
 - 计划文件遵循 `docs/plan/v1-*.md`。
 - 每个完成的 slice 都要先验证，再 `commit + push`。
 - 施工中若发现设计偏差，新增 `docs/ecn/ECN-NNNN-*.md` 并同步更新 PRD 与计划。
+

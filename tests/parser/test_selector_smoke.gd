@@ -30,10 +30,11 @@ func _init() -> void:
 	if not T.require_eq(self, products.size(), 3, "Expected three product nodes from css()"):
 		return
 
-	var reviews: Variant = page.call("xpath", '//section[@id="reviews"]//div[contains(@class, "review")]')
+	var reviews: Variant = page.call("xpath", '//section[@id="reviews"]//span[contains(@class, "reviewer")]')
 	if not T.require_true(self, reviews is Array, "xpath() must return Array-like collection"):
 		return
-	if not T.require_eq(self, reviews.size(), 2, "Expected two review nodes from xpath()"):
+	if not T.require_eq(self, reviews.size(), 2, "Expected two reviewer nodes from xpath()"):
 		return
 
 	T.pass_and_quit(self)
+
