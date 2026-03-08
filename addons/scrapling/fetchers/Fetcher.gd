@@ -14,23 +14,23 @@ func _init(default_headers: Dictionary = {}, cookie_jar_path: String = "") -> vo
 	_cookie_jar_path = cookie_jar_path
 
 
-func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
-	return _curl_request(url, "GET", "", params, headers, cookies, proxy, proxy_rotator)
+func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
+	return _curl_request(url, "GET", "", params, headers, cookies, proxy, proxy_rotator, timeout_sec)
 
 
-func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
-	return _curl_request(url, "POST", body, params, headers, cookies, proxy, proxy_rotator)
+func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
+	return _curl_request(url, "POST", body, params, headers, cookies, proxy, proxy_rotator, timeout_sec)
 
 
-func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
-	return _curl_request(url, "PUT", body, params, headers, cookies, proxy, proxy_rotator)
+func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
+	return _curl_request(url, "PUT", body, params, headers, cookies, proxy, proxy_rotator, timeout_sec)
 
 
-func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
-	return _curl_request(url, "DELETE", body, params, headers, cookies, proxy, proxy_rotator)
+func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
+	return _curl_request(url, "DELETE", body, params, headers, cookies, proxy, proxy_rotator, timeout_sec)
 
 
-func _curl_request(url: String, method: String, body: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
+func _curl_request(url: String, method: String, body: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
 	var output: Array = []
 	var request_url := _append_query_params(url, params)
 	var args: Array = ["-sS", "-X", method]
@@ -38,6 +38,7 @@ func _curl_request(url: String, method: String, body: String, params: Dictionary
 	_append_cookie_jar_args(args)
 	_append_cookie_args(args, cookies)
 	_append_proxy_args(args, _resolve_proxy(proxy, proxy_rotator))
+	_append_timeout_args(args, timeout_sec)
 	var temp_body_path := ""
 	if _should_send_body(method, body):
 		temp_body_path = _write_request_body_file(body)
@@ -140,4 +141,10 @@ func _append_proxy_args(args: Array, proxy: Variant) -> void:
 		var password := str(proxy.get("password", ""))
 		if username != "" or password != "":
 			args.append_array(["-U", "%s:%s" % [username, password]])
+
+
+func _append_timeout_args(args: Array, timeout_sec: float) -> void:
+	if timeout_sec <= 0.0:
+		return
+	args.append_array(["--max-time", str(timeout_sec)])
 

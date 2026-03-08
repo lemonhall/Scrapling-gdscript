@@ -12,20 +12,20 @@ func _init(default_headers: Dictionary = {}) -> void:
 	_fetcher = FetcherScript.new(default_headers, _cookie_jar_path)
 
 
-func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
-	return _fetcher.fetch_get(url, params, headers, cookies, proxy, proxy_rotator)
+func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
+	return _fetcher.fetch_get(url, params, headers, cookies, proxy, proxy_rotator, timeout_sec)
 
 
-func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
-	return _fetcher.fetch_post(url, body, params, headers, cookies, proxy, proxy_rotator)
+func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
+	return _fetcher.fetch_post(url, body, params, headers, cookies, proxy, proxy_rotator, timeout_sec)
 
 
-func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
-	return _fetcher.fetch_put(url, body, params, headers, cookies, proxy, proxy_rotator)
+func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
+	return _fetcher.fetch_put(url, body, params, headers, cookies, proxy, proxy_rotator, timeout_sec)
 
 
-func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null) -> Variant:
-	return _fetcher.fetch_delete(url, body, params, headers, cookies, proxy, proxy_rotator)
+func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
+	return _fetcher.fetch_delete(url, body, params, headers, cookies, proxy, proxy_rotator, timeout_sec)
 
 
 func close() -> void:

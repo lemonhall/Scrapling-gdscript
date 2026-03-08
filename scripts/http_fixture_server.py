@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from http.cookies import SimpleCookie
 import argparse
 import json
+import time
 from urllib.parse import parse_qs, urlparse
 
 MODE = "origin"
@@ -53,6 +54,18 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/set-cookie":
             payload = json.dumps({"set": True, "name": "session_id"}).encode("utf-8")
             self._send(200, payload, extra_headers={"Set-Cookie": "session_id=abc123; Path=/"})
+            return
+        if parsed.path == "/slow":
+            delay = 1.0
+            query = parse_qs(parsed.query)
+            if "delay" in query and len(query["delay"]) > 0:
+                try:
+                    delay = float(query["delay"][-1])
+                except ValueError:
+                    delay = 1.0
+            time.sleep(delay)
+            payload = json.dumps({"slow": True, "delay": delay}).encode("utf-8")
+            self._send(200, payload)
             return
         if parsed.path == "/check-cookie":
             cookie = SimpleCookie()
