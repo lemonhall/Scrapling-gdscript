@@ -16,15 +16,18 @@
 - 总体 PRD：`docs/prd/PRD-0001-scrapling-parity.md`
 - 源项目能力盘点：`docs/analysis/source-capability-inventory.md`
 - 首轮计划索引：`docs/plan/v1-index.md`
-- 当前基础设施计划：`docs/plan/v1-godot-foundation.md`
-- 下一刀：`docs/plan/v1-parser-and-selector-parity.md`
+- Foundation 计划：`docs/plan/v1-godot-foundation.md`
+- Parser 计划：`docs/plan/v1-parser-and-selector-parity.md`
+- 当前推进：`docs/plan/v1-static-fetcher-and-session-parity.md`
 
 ## 当前状态
 
 - 已完成：文档基线、源项目能力盘点、PRD、v1 计划矩阵。
 - 已完成：`Godot 4.6` 工程骨架、插件元数据、PowerShell headless 测试脚本、foundation smoke test。
 - 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite foundation` 返回 `PASS`。
-- 进行中：Parser / Selector 已完成最小 smoke green，完整查询/导航/自适应能力仍待扩展。
+- 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite parser` 返回 `PASS`，Parser / Selector 核心等价层已打通。
+- 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite fetchers-static` 返回 `PASS`，当前已覆盖本地 fixture server 下的 `fetch_get()` / `fetch_post()` 真实 HTTP 链路。
+- 进行中：Static Fetcher 的 session / proxy / PUT / DELETE / 更完整错误处理仍待补齐。
 
 ## 当前目录
 
@@ -37,6 +40,10 @@
 
 - 运行 foundation 测试：
   - `powershell -File .\scripts\run_godot_tests.ps1 -Suite foundation`
+- 运行 parser 测试：
+  - `powershell -File .\scripts\run_godot_tests.ps1 -Suite parser`
+- 运行静态 fetcher 测试：
+  - `powershell -File .\scripts\run_godot_tests.ps1 -Suite fetchers-static`
 - 指定 Godot 可执行文件：
   - `powershell -File .\scripts\run_godot_tests.ps1 -GodotExe "E:\Godot_v4.6-stable_win64.exe\Godot_v4.6-stable_win64_console.exe" -Suite foundation`
 - 运行单个测试：

@@ -53,9 +53,20 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 6. E2E 测试
    - 启动 fixture server，运行完整抓取流程并验证导出的响应对象。
 
-## Evidence`n`n- 2026-03-08 Red: `$env:SCRAPLING_FIXTURE_BASE_URL='http://127.0.0.1:8765'; powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 20` → `FAIL: Missing res://addons/scrapling/fetchers/Fetcher.gd`
-- 2026-03-08 Green: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0` (fixture server + fetch_get)
-- 2026-03-08 Red 2: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `FAIL: Fetcher must expose fetch_post()``n`n## Notes`n`n- 由于 Godot `Object.get` 冲突，当前静态 fetcher 使用 Godot-safe alias：`fetch_get()`。`n`n## Risks
+## Evidence
+
+- 2026-03-08 Red: `$env:SCRAPLING_FIXTURE_BASE_URL='http://127.0.0.1:8765'; powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 20` → `FAIL: Missing res://addons/scrapling/fetchers/Fetcher.gd`
+- 2026-03-08 Green 1: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（fixture server + `fetch_get()`）
+- 2026-03-08 Red 2: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `FAIL: Fetcher must expose fetch_post()`
+- 2026-03-08 Red 3: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_fetcher_post.gd -TimeoutSec 25` → `FAIL: Response body must echo posted json`
+- 2026-03-08 Green 2: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（fixture server + `fetch_get()` + `fetch_post()`）
+
+## Notes
+
+- 由于 Godot `Object.get` 冲突，当前静态 fetcher 使用 Godot-safe alias：`fetch_get()`。
+- POST JSON 当前通过临时文件 + `curl.exe --data-binary` 发送，避免 `OS.execute(...)` 直传 JSON 字面量时丢失引号。
+
+## Risks
 
 - Godot 原生 HTTP 能力与 Python `curl_cffi` 差异较大，需要先定义“可观测行为等价层”。
 - Windows 上本地 fixture server 的启动、端口清理和超时需要脚本化处理。

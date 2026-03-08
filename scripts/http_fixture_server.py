@@ -19,6 +19,20 @@ class Handler(BaseHTTPRequestHandler):
         payload = json.dumps({"error": "not found", "path": self.path}).encode("utf-8")
         self._send(404, payload)
 
+    def do_POST(self):
+        length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(length) if length > 0 else b""
+        if self.path == "/echo":
+            try:
+                payload = json.loads(raw.decode("utf-8") or "{}")
+            except json.JSONDecodeError:
+                payload = {"raw": raw.decode("utf-8", errors="replace")}
+            body = json.dumps(payload).encode("utf-8")
+            self._send(200, body)
+            return
+        payload = json.dumps({"error": "not found", "path": self.path}).encode("utf-8")
+        self._send(404, payload)
+
     def log_message(self, format, *args):
         return
 
