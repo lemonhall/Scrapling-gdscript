@@ -97,6 +97,28 @@ func attrib(name: String = "") -> Variant:
 	return attrs.get(name)
 
 
+func find(query = null, attrs: Dictionary = {}) -> Variant:
+	var results := find_all(query, attrs)
+	return results[0] if results.size() > 0 else null
+
+
+func find_all(query = null, attrs: Dictionary = {}) -> Array:
+	var wanted_tag := ""
+	var wanted_attrs: Dictionary = attrs.duplicate()
+	if query is String:
+		wanted_tag = String(query).to_lower()
+	elif query is Dictionary and wanted_attrs.is_empty():
+		wanted_attrs = (query as Dictionary).duplicate()
+	var matches: Array = []
+	for node in _all_descendants(_current_node):
+		if wanted_tag != "" and String((node as Dictionary).get("tag", "")) != wanted_tag:
+			continue
+		if not _matches_attrs(node, wanted_attrs):
+			continue
+		matches.append(node)
+	return _wrap_nodes(matches)
+
+
 func find_similar() -> Array:
 	var parent_node: Variant = _current_node.get("parent")
 	if parent_node == null:
@@ -421,3 +443,21 @@ func _class_tokens(node: Dictionary) -> Array:
 		if class_token != "":
 			tokens.append(class_token)
 	return tokens
+
+
+func _all_descendants(node: Dictionary) -> Array:
+	var results: Array = []
+	for child in node.get("children", []):
+		results.append(child)
+		results.append_array(_all_descendants(child))
+	return results
+
+
+func _matches_attrs(node: Dictionary, wanted_attrs: Dictionary) -> bool:
+	if wanted_attrs.is_empty():
+		return true
+	var attrs: Dictionary = node.get("attrs", {})
+	for key in wanted_attrs.keys():
+		if String(attrs.get(String(key), "")) != String(wanted_attrs[key]):
+			return false
+	return true
