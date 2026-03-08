@@ -36,6 +36,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `tests/fetchers/static/test_fetcher_post.gd`
 - `tests/fetchers/static/test_fetcher_put.gd`
 - `tests/fetchers/static/test_fetcher_delete.gd`
+- `tests/fetchers/static/test_fetcher_request_options.gd`
 - `tests/fetchers/static/test_fetcher_session.gd`
 - `tests/fetchers/static/test_proxy_rotator.gd`
 - `scripts/http_fixture_server.py`
@@ -65,11 +66,14 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - 2026-03-08 Green 2: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（fixture server + `fetch_get()` + `fetch_post()`）
 - 2026-03-08 Red 4: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `FAIL: Fetcher must expose fetch_delete()` / `FAIL: Fetcher must expose fetch_put()`
 - 2026-03-08 Green 3: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（fixture server + `fetch_get()` + `fetch_post()` + `fetch_put()` + `fetch_delete()`）
+- 2026-03-08 Red 5: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `SCRIPT ERROR: Invalid call to function 'fetch_get (via call)'. Expected 1 argument(s).`
+- 2026-03-08 Green 4: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（`headers` + `params` + 全部现有静态 fetcher 覆盖）
 
 ## Notes
 
 - 由于 Godot `Object.get` 冲突，当前静态 fetcher 使用 Godot-safe alias：`fetch_get()`。
 - 为保持命名一致性，当前静态 fetcher 同步使用 Godot-safe alias：`fetch_post()`、`fetch_put()`、`fetch_delete()`。
+- 当前 `headers` 通过重复 `-H` 传给 `curl.exe`，`params` 通过 URL query string 显式拼接并做 `uri_encode()`。
 - POST JSON 当前通过临时文件 + `curl.exe --data-binary` 发送，避免 `OS.execute(...)` 直传 JSON 字面量时丢失引号。
 
 ## Risks

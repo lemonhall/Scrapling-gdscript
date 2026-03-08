@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import argparse
 import json
+from urllib.parse import parse_qs, urlparse
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -12,8 +13,21 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
-        if self.path == "/hello":
+        parsed = urlparse(self.path)
+        if parsed.path == "/hello":
             payload = json.dumps({"message": "hello from fixture"}).encode("utf-8")
+            self._send(200, payload)
+            return
+        if parsed.path == "/inspect":
+            query = {
+                key: values[-1] if len(values) == 1 else values
+                for key, values in parse_qs(parsed.query).items()
+            }
+            headers = {}
+            token = self.headers.get("X-Test-Token")
+            if token is not None:
+                headers["X-Test-Token"] = token
+            payload = json.dumps({"query": query, "headers": headers}).encode("utf-8")
             self._send(200, payload)
             return
         payload = json.dumps({"error": "not found", "path": self.path}).encode("utf-8")

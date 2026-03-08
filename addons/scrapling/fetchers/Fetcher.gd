@@ -6,32 +6,34 @@ const STATUS_MARKER := "__STATUS__"
 const CURL_JSON_HEADER := "Content-Type: application/json"
 
 
-func fetch_get(url: String) -> Variant:
-	return _curl_request(url, "GET", "")
+func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}) -> Variant:
+	return _curl_request(url, "GET", "", params, headers)
 
 
-func fetch_post(url: String, body: String = "") -> Variant:
-	return _curl_request(url, "POST", body)
+func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}) -> Variant:
+	return _curl_request(url, "POST", body, params, headers)
 
 
-func fetch_put(url: String, body: String = "") -> Variant:
-	return _curl_request(url, "PUT", body)
+func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}) -> Variant:
+	return _curl_request(url, "PUT", body, params, headers)
 
 
-func fetch_delete(url: String, body: String = "") -> Variant:
-	return _curl_request(url, "DELETE", body)
+func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}) -> Variant:
+	return _curl_request(url, "DELETE", body, params, headers)
 
 
-func _curl_request(url: String, method: String, body: String) -> Variant:
+func _curl_request(url: String, method: String, body: String, params: Dictionary = {}, headers: Dictionary = {}) -> Variant:
 	var output: Array = []
+	var request_url := _append_query_params(url, params)
 	var args: Array = ["-sS", "-X", method]
+	_append_header_args(args, headers)
 	var temp_body_path := ""
 	if _should_send_body(method, body):
 		temp_body_path = _write_request_body_file(body)
 		if temp_body_path == "":
 			return FetcherResponseScript.new(0, "")
 		args.append_array(["-H", CURL_JSON_HEADER, "--data-binary", "@" + temp_body_path])
-	args.append_array(["-w", STATUS_MARKER + "%{http_code}", url])
+	args.append_array(["-w", STATUS_MARKER + "%{http_code}", request_url])
 	var exit_code := OS.execute("curl.exe", args, output, true)
 	if temp_body_path != "":
 		DirAccess.remove_absolute(temp_body_path)
@@ -61,4 +63,23 @@ func _should_send_body(method: String, body: String) -> bool:
 	if body == "":
 		return false
 	return method == "POST" or method == "PUT" or method == "DELETE"
+
+
+func _append_query_params(url: String, params: Dictionary) -> String:
+	if params.is_empty():
+		return url
+	var parts: Array[String] = []
+	for key in params.keys():
+		parts.append("%s=%s" % [str(key).uri_encode(), str(params[key]).uri_encode()])
+	var separator := "?"
+	if url.contains("?"):
+		separator = "&"
+	return url + separator + "&".join(parts)
+
+
+func _append_header_args(args: Array, headers: Dictionary) -> void:
+	if headers.is_empty():
+		return
+	for key in headers.keys():
+		args.append_array(["-H", "%s: %s" % [str(key), str(headers[key])]])
 
