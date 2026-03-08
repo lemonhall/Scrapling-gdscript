@@ -1,6 +1,16 @@
 extends RefCounted
 class_name ProxyRotator
 
+const PROXY_ERROR_INDICATORS := [
+	"net::err_proxy",
+	"net::err_tunnel",
+	"connection refused",
+	"connection reset",
+	"connection timed out",
+	"failed to connect",
+	"could not resolve proxy"
+]
+
 var _proxies: Array = []
 var _current_index := 0
 var _strategy: Callable = Callable()
@@ -51,20 +61,28 @@ func _to_string() -> String:
 	return "ProxyRotator(proxies=%d)" % _proxies.size()
 
 
+static func cyclic_rotation(proxies: Array, current_index: int) -> Array:
+	if proxies.is_empty():
+		return [null, current_index]
+	var index := current_index % proxies.size()
+	return [proxies[index], (index + 1) % proxies.size()]
+
+
+static func is_proxy_error(error_value: Variant) -> bool:
+	var error_message := str(error_value).to_lower()
+	for indicator in PROXY_ERROR_INDICATORS:
+		if error_message.contains(indicator):
+			return true
+	return false
+
+
 func _run_rotation_strategy() -> Array:
 	if _strategy.is_valid():
 		var result: Variant = _strategy.call(_proxies, _current_index)
 		if result is Array and result.size() >= 2:
 			return [result[0], int(result[1])]
 		push_error("Proxy rotation strategy must return [proxy, next_index]")
-	return _cyclic_rotation(_proxies, _current_index)
-
-
-func _cyclic_rotation(proxies: Array, current_index: int) -> Array:
-	if proxies.is_empty():
-		return [null, current_index]
-	var index := current_index % proxies.size()
-	return [proxies[index], (index + 1) % proxies.size()]
+	return cyclic_rotation(_proxies, _current_index)
 
 
 func _duplicate_proxies() -> Array:
