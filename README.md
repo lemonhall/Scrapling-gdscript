@@ -26,8 +26,8 @@
 - 已完成：`Godot 4.6` 工程骨架、插件元数据、PowerShell headless 测试脚本、foundation smoke test。
 - 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite foundation` 返回 `PASS`。
 - 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite parser` 返回 `PASS`，Parser / Selector 核心等价层已打通。
-- 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite fetchers-static` 返回 `PASS`，当前已覆盖本地 fixture server 下的 `fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()`、最小 `AsyncFetcher.fetch_get()`、最小 `AsyncFetcherSession.fetch_get()`、响应头读取、`headers` / `params`、显式 `cookies`、`FetcherSession` 的 cookie 持久化与默认配置、`ProxyRotator` 的轮换逻辑、真实代理链路下的 per-request override / cyclic rotation，以及 `404` / `timeout` 行为。
-- 进行中：AsyncFetcher 的更多 HTTP 方法、响应元数据与更完整错误分类仍待补齐。
+- 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite fetchers-static` 返回 `PASS`，当前已覆盖本地 fixture server 下的 `fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()`、`AsyncFetcher.fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()`、最小 `AsyncFetcherSession.fetch_get()`、响应头读取、`headers` / `params`、显式 `cookies`、`FetcherSession` 的 cookie 持久化与默认配置、`ProxyRotator` 的轮换逻辑、真实代理链路下的 per-request override / cyclic rotation，以及 `404` / `timeout` 行为。
+- 进行中：异步响应元数据与更完整错误分类仍待补齐。
 
 ## 当前目录
 

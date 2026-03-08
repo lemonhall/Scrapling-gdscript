@@ -48,6 +48,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `tests/fetchers/static/test_fetcher_session_defaults.gd`
 - `tests/fetchers/static/test_async_fetcher_get.gd`
 - `tests/fetchers/static/test_async_fetcher_session.gd`
+- `tests/fetchers/static/test_async_fetcher_methods.gd`
 - `tests/fetchers/static/test_fetcher_response_headers.gd`
 - `scripts/http_fixture_server.py`
 
@@ -96,6 +97,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - 2026-03-08 Green 12: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（最小 `AsyncFetcherSession.fetch_get()` + cookie persistence）
 - 2026-03-08 Red 14: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_fetcher_response_headers.gd -TimeoutSec 25` → `FAIL: FetcherResponse must expose get_headers()`
 - 2026-03-08 Green 13: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（`FetcherResponse.get_headers()` + `get_header()`）
+- 2026-03-08 Green 14: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_async_fetcher_methods.gd -TimeoutSec 25` → `PASS` / exit code `0`（补齐 `AsyncFetcher` 的 POST / PUT / DELETE 覆盖）
 
 ## Notes
 
@@ -109,6 +111,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `timeout_sec` 当前通过 `curl.exe --max-time <seconds>` 下沉到请求层；超时后当前返回 `status=0`、空 body。
 - `FetcherSession` 当前支持默认 `headers`、默认 `proxy`、默认 `proxy_rotator`、默认 `timeout_sec`，请求级参数优先级高于会话默认值。
 - `AsyncFetcher` 当前以后台 `Thread` 包装同步 `Fetcher`，主线程通过 `process_frame` 轮询完成状态；已覆盖最小 `fetch_get()`。
+- `AsyncFetcher` 当前已补齐 `fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()` 的真实 HTTP 测试覆盖。
 - `AsyncFetcherSession` 当前镜像同步会话能力：默认 `headers` / `proxy` / `proxy_rotator` / `timeout_sec` + cookie jar 持久化；已覆盖最小 `fetch_get()`。
 - `FetcherResponse` 当前支持 `get_headers()` / `get_header()`，响应头通过 `curl.exe -D <temp-file>` 捕获并解析最后一个响应头块。
 - POST JSON 当前通过临时文件 + `curl.exe --data-binary` 发送，避免 `OS.execute(...)` 直传 JSON 字面量时丢失引号。
