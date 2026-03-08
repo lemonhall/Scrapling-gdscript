@@ -56,6 +56,22 @@ func find_by_regex(pattern: String, first_match: bool = true) -> Variant:
 	return wrapped
 
 
+func re(pattern: String) -> Array:
+	var regex := RegEx.new()
+	var err := regex.compile(pattern)
+	if err != OK:
+		return []
+	var matches: Array = []
+	for match in regex.search_all(text()):
+		matches.append(match.get_string())
+	return matches
+
+
+func re_first(pattern: String) -> Variant:
+	var matches := re(pattern)
+	return matches[0] if matches.size() > 0 else null
+
+
 func attrib(name: String = "") -> Variant:
 	var attrs: Dictionary = _current_node.get("attrs", {})
 	if name == "":
@@ -334,4 +350,5 @@ func _text_matches(text_value: String, pattern: String, partial: bool, regex_mod
 	if partial:
 		return text_value.contains(pattern)
 	return text_value == pattern
+
 
