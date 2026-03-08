@@ -40,15 +40,23 @@ func _curl_request(url: String, method: String, body: String, params: Dictionary
 	_append_proxy_args(args, _resolve_proxy(proxy, proxy_rotator))
 	_append_timeout_args(args, timeout_sec)
 	var temp_body_path := ""
+	var temp_header_path := _create_temp_file_path("headers", "txt")
+	if temp_header_path != "":
+		args.append_array(["-D", temp_header_path])
 	if _should_send_body(method, body):
 		temp_body_path = _write_request_body_file(body)
 		if temp_body_path == "":
+			if temp_header_path != "":
+				DirAccess.remove_absolute(temp_header_path)
 			return FetcherResponseScript.new(0, "")
 		args.append_array(["-H", CURL_JSON_HEADER, "--data-binary", "@" + temp_body_path])
 	args.append_array(["-w", STATUS_MARKER + "%{http_code}", request_url])
 	var exit_code := OS.execute("curl.exe", args, output, true)
+	var response_headers := _read_response_headers(temp_header_path)
 	if temp_body_path != "":
 		DirAccess.remove_absolute(temp_body_path)
+	if temp_header_path != "":
+		DirAccess.remove_absolute(temp_header_path)
 	if exit_code != 0:
 		return FetcherResponseScript.new(0, "")
 	var combined := "".join(output)
@@ -57,18 +65,30 @@ func _curl_request(url: String, method: String, body: String, params: Dictionary
 		return FetcherResponseScript.new(0, combined)
 	var response_body := combined.substr(0, marker_index)
 	var status_text := combined.substr(marker_index + STATUS_MARKER.length())
-	return FetcherResponseScript.new(int(status_text), response_body)
+	return FetcherResponseScript.new(int(status_text), response_body, response_headers)
 
 
 func _write_request_body_file(body: String) -> String:
-	var temp_file_name := "scrapling-request-%s.json" % str(Time.get_ticks_usec())
-	var project_temp_path := "user://%s" % temp_file_name
+	var project_temp_path := "user://%s" % _build_temp_file_name("request", "json")
 	var file := FileAccess.open(project_temp_path, FileAccess.WRITE)
 	if file == null:
 		return ""
 	file.store_string(body)
 	file.close()
 	return ProjectSettings.globalize_path(project_temp_path)
+
+
+func _create_temp_file_path(prefix: String, extension: String) -> String:
+	var project_path := "user://%s" % _build_temp_file_name(prefix, extension)
+	var file := FileAccess.open(project_path, FileAccess.WRITE)
+	if file == null:
+		return ""
+	file.close()
+	return ProjectSettings.globalize_path(project_path)
+
+
+func _build_temp_file_name(prefix: String, extension: String) -> String:
+	return "scrapling-%s-%s.%s" % [prefix, str(Time.get_ticks_usec()), extension]
 
 
 func _should_send_body(method: String, body: String) -> bool:
@@ -147,4 +167,33 @@ func _append_timeout_args(args: Array, timeout_sec: float) -> void:
 	if timeout_sec <= 0.0:
 		return
 	args.append_array(["--max-time", str(timeout_sec)])
+
+
+func _read_response_headers(temp_header_path: String) -> Dictionary:
+	if temp_header_path == "" or not FileAccess.file_exists(temp_header_path):
+		return {}
+	var content := FileAccess.get_file_as_string(temp_header_path)
+	if content == "":
+		return {}
+	var lines := content.replace("\r", "").split("\n")
+	var current_headers: Dictionary = {}
+	var last_headers: Dictionary = {}
+	for raw_line in lines:
+		var line := raw_line.strip_edges()
+		if line.begins_with("HTTP/"):
+			current_headers = {}
+			continue
+		if line == "":
+			if not current_headers.is_empty():
+				last_headers = current_headers.duplicate(true)
+			continue
+		var separator_index := line.find(":")
+		if separator_index <= 0:
+			continue
+		var name := line.substr(0, separator_index).strip_edges()
+		var value := line.substr(separator_index + 1).strip_edges()
+		current_headers[name] = value
+	if not current_headers.is_empty():
+		last_headers = current_headers.duplicate(true)
+	return last_headers
 
