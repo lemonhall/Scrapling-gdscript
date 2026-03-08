@@ -56,7 +56,11 @@ Goal: 交付 `Selector` / `Selectors` 核心能力，使固定 HTML fixtures 上
 6. E2E 测试
    - 运行一个完整 fixture 流程：解析 HTML → 定位元素 → 导出结构化结果。
 
+## Evidence
+
+- 2026-03-08 Red: `powershell -File scripts/run_godot_tests.ps1 -Suite parser` → `FAIL: Missing res://addons/scrapling/parser/Selector.gd`
 ## Risks
 
 - `lxml` / `cssselect` 语义在 GDScript 中没有现成对照物，必须先锁定支持子集再扩展。
 - XPath 支持范围如果不先定义，会导致计划漂移；需要以源测试覆盖范围为首版边界。
+
