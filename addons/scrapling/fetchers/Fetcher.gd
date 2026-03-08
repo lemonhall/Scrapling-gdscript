@@ -14,11 +14,19 @@ func fetch_post(url: String, body: String = "") -> Variant:
 	return _curl_request(url, "POST", body)
 
 
+func fetch_put(url: String, body: String = "") -> Variant:
+	return _curl_request(url, "PUT", body)
+
+
+func fetch_delete(url: String, body: String = "") -> Variant:
+	return _curl_request(url, "DELETE", body)
+
+
 func _curl_request(url: String, method: String, body: String) -> Variant:
 	var output: Array = []
 	var args: Array = ["-sS", "-X", method]
 	var temp_body_path := ""
-	if method == "POST":
+	if _should_send_body(method, body):
 		temp_body_path = _write_request_body_file(body)
 		if temp_body_path == "":
 			return FetcherResponseScript.new(0, "")
@@ -47,4 +55,10 @@ func _write_request_body_file(body: String) -> String:
 	file.store_string(body)
 	file.close()
 	return ProjectSettings.globalize_path(project_temp_path)
+
+
+func _should_send_body(method: String, body: String) -> bool:
+	if body == "":
+		return false
+	return method == "POST" or method == "PUT" or method == "DELETE"
 

@@ -32,7 +32,10 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `addons/scrapling/fetchers/async_fetcher.gd`
 - `addons/scrapling/fetchers/fetcher_session.gd`
 - `addons/scrapling/fetchers/proxy_rotator.gd`
-- `tests/fetchers/static/test_fetcher_methods.gd`
+- `tests/fetchers/static/test_fetcher_get.gd`
+- `tests/fetchers/static/test_fetcher_post.gd`
+- `tests/fetchers/static/test_fetcher_put.gd`
+- `tests/fetchers/static/test_fetcher_delete.gd`
 - `tests/fetchers/static/test_fetcher_session.gd`
 - `tests/fetchers/static/test_proxy_rotator.gd`
 - `scripts/http_fixture_server.py`
@@ -60,10 +63,13 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - 2026-03-08 Red 2: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `FAIL: Fetcher must expose fetch_post()`
 - 2026-03-08 Red 3: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_fetcher_post.gd -TimeoutSec 25` → `FAIL: Response body must echo posted json`
 - 2026-03-08 Green 2: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（fixture server + `fetch_get()` + `fetch_post()`）
+- 2026-03-08 Red 4: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `FAIL: Fetcher must expose fetch_delete()` / `FAIL: Fetcher must expose fetch_put()`
+- 2026-03-08 Green 3: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（fixture server + `fetch_get()` + `fetch_post()` + `fetch_put()` + `fetch_delete()`）
 
 ## Notes
 
 - 由于 Godot `Object.get` 冲突，当前静态 fetcher 使用 Godot-safe alias：`fetch_get()`。
+- 为保持命名一致性，当前静态 fetcher 同步使用 Godot-safe alias：`fetch_post()`、`fetch_put()`、`fetch_delete()`。
 - POST JSON 当前通过临时文件 + `curl.exe --data-binary` 发送，避免 `OS.execute(...)` 直传 JSON 字面量时丢失引号。
 
 ## Risks
