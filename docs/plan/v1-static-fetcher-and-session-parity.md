@@ -31,6 +31,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `addons/scrapling/fetchers/fetcher.gd`
 - `addons/scrapling/fetchers/async_fetcher.gd`
 - `addons/scrapling/fetchers/AsyncFetcher.gd`
+- `addons/scrapling/fetchers/AsyncFetcherSession.gd`
 - `addons/scrapling/fetchers/FetcherSession.gd`
 - `addons/scrapling/fetchers/fetcher_session.gd`
 - `addons/scrapling/fetchers/ProxyRotator.gd`
@@ -46,6 +47,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `tests/fetchers/static/test_fetcher_status_timeout.gd`
 - `tests/fetchers/static/test_fetcher_session_defaults.gd`
 - `tests/fetchers/static/test_async_fetcher_get.gd`
+- `tests/fetchers/static/test_async_fetcher_session.gd`
 - `scripts/http_fixture_server.py`
 
 ## Steps
@@ -89,6 +91,8 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - 2026-03-08 Green 10: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（`FetcherSession` 默认 headers / timeout / proxy_rotator）
 - 2026-03-08 Red 12: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_async_fetcher_get.gd -TimeoutSec 25` → `FAIL: Failed to load res://addons/scrapling/fetchers/AsyncFetcher.gd`
 - 2026-03-08 Green 11: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（最小 `AsyncFetcher.fetch_get()` + 全量静态 fetcher 回归）
+- 2026-03-08 Red 13: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_async_fetcher_session.gd -TimeoutSec 25` → `FAIL: Failed to load res://addons/scrapling/fetchers/AsyncFetcherSession.gd`
+- 2026-03-08 Green 12: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（最小 `AsyncFetcherSession.fetch_get()` + cookie persistence）
 
 ## Notes
 
@@ -102,6 +106,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `timeout_sec` 当前通过 `curl.exe --max-time <seconds>` 下沉到请求层；超时后当前返回 `status=0`、空 body。
 - `FetcherSession` 当前支持默认 `headers`、默认 `proxy`、默认 `proxy_rotator`、默认 `timeout_sec`，请求级参数优先级高于会话默认值。
 - `AsyncFetcher` 当前以后台 `Thread` 包装同步 `Fetcher`，主线程通过 `process_frame` 轮询完成状态；已覆盖最小 `fetch_get()`。
+- `AsyncFetcherSession` 当前镜像同步会话能力：默认 `headers` / `proxy` / `proxy_rotator` / `timeout_sec` + cookie jar 持久化；已覆盖最小 `fetch_get()`。
 - POST JSON 当前通过临时文件 + `curl.exe --data-binary` 发送，避免 `OS.execute(...)` 直传 JSON 字面量时丢失引号。
 
 ## Risks
