@@ -17,11 +17,11 @@ func _init() -> void:
 	var fetcher: Variant = fetcher_script.new()
 	if not T.require_true(self, fetcher != null, "Failed to instantiate Fetcher.gd"):
 		return
-	if not T.require_true(self, fetcher.has_method("get"), "Fetcher must expose get()"):
+	if not T.require_true(self, fetcher.has_method("fetch_get"), "Fetcher must expose fetch_get()"):
 		return
 
-	var response: Variant = fetcher.call("get", base_url + "/hello")
-	if not T.require_true(self, response != null, "Fetcher.get() must return a response object"):
+	var response: Variant = fetcher.call("fetch_get", base_url + "/hello")
+	if not T.require_true(self, response != null, "Fetcher.fetch_get() must return a response object"):
 		return
 	if not T.require_true(self, response.has_method("get_status"), "Response object must expose get_status()"):
 		return
@@ -33,3 +33,4 @@ func _init() -> void:
 		return
 
 	T.pass_and_quit(self)
+

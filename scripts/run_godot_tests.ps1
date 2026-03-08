@@ -61,6 +61,60 @@ function Run-ProcessCapture {
   }
 }
 
+function Start-FetcherFixtureServer {
+  Param(
+    [Parameter(Mandatory = $true)][string]$RootDir
+  )
+
+  if ([string]::IsNullOrWhiteSpace($env:SCRAPLING_FIXTURE_BASE_URL)) {
+    $env:SCRAPLING_FIXTURE_BASE_URL = 'http://127.0.0.1:8765'
+  }
+
+  $scriptPath = Join-Path $RootDir 'scripts\http_fixture_server.py'
+  if (!(Test-Path $scriptPath)) {
+    throw "Missing fixture server script: $scriptPath"
+  }
+
+  $outLog = Join-Path $RootDir '.godot-fetcher-fixture.out.log'
+  $errLog = Join-Path $RootDir '.godot-fetcher-fixture.err.log'
+  if (Test-Path $outLog) { Remove-Item $outLog -Force }
+  if (Test-Path $errLog) { Remove-Item $errLog -Force }
+
+  $proc = Start-Process -FilePath 'python' -ArgumentList @($scriptPath, '--host', '127.0.0.1', '--port', '8765') -WorkingDirectory $RootDir -PassThru -WindowStyle Hidden -RedirectStandardOutput $outLog -RedirectStandardError $errLog
+  for ($i = 0; $i -lt 50; $i++) {
+    Start-Sleep -Milliseconds 100
+    try {
+      $resp = Invoke-WebRequest -Uri ($env:SCRAPLING_FIXTURE_BASE_URL + '/hello') -UseBasicParsing -TimeoutSec 2
+      if ($resp.StatusCode -eq 200) {
+        return @{ process = $proc; out_log = $outLog; err_log = $errLog }
+      }
+    } catch {
+    }
+    if ($proc.HasExited) {
+      break
+    }
+  }
+
+  if (-not $proc.HasExited) {
+    try { Stop-Process -Id $proc.Id -Force } catch {}
+  }
+  throw 'Fixture server failed to start'
+}
+
+function Stop-FetcherFixtureServer {
+  Param(
+    [Parameter(Mandatory = $false)]$ServerHandle
+  )
+
+  if ($null -eq $ServerHandle) {
+    return
+  }
+  $proc = $ServerHandle.process
+  if ($null -ne $proc -and -not $proc.HasExited) {
+    try { Stop-Process -Id $proc.Id -Force } catch {}
+  }
+}
+
 function Usage {
   Write-Host @"
 Run Godot headless test scripts from Windows (PowerShell).
@@ -71,6 +125,7 @@ Usage:
 Examples:
   scripts/run_godot_tests.ps1
   scripts/run_godot_tests.ps1 -Suite foundation
+  scripts/run_godot_tests.ps1 -Suite fetchers-static
   scripts/run_godot_tests.ps1 -GodotExe "E:\Godot_v4.6-stable_win64.exe\Godot_v4.6-stable_win64_console.exe"
 
 Suites:
@@ -129,36 +184,54 @@ if (![string]::IsNullOrWhiteSpace($One)) {
   }
 }
 
+$needsFetcherFixture = $false
+if ($Suite -eq 'fetchers-static') {
+  $needsFetcherFixture = $true
+}
+if (-not [string]::IsNullOrWhiteSpace($One) -and $One -match 'tests\\fetchers\\static') {
+  $needsFetcherFixture = $true
+}
+
+$fixtureHandle = $null
+if ($needsFetcherFixture) {
+  $fixtureHandle = Start-FetcherFixtureServer -RootDir $RootDir.Path
+}
+
 $status = 0
-foreach ($t in $tests) {
-  $scriptPath = $t
-  if (!(Test-Path $scriptPath)) {
-    $scriptPath = Join-Path $RootDir $t
-  }
-  if (!(Test-Path $scriptPath)) {
-    Write-Host "Missing test script: $t"
-    $status = 1
-    continue
-  }
+try {
+  foreach ($t in $tests) {
+    $scriptPath = $t
+    if (!(Test-Path $scriptPath)) {
+      $scriptPath = Join-Path $RootDir $t
+    }
+    if (!(Test-Path $scriptPath)) {
+      Write-Host "Missing test script: $t"
+      $status = 1
+      continue
+    }
 
-  Write-Host "--- RUN $t"
-  $args = @()
-  if ($ExtraArgs.Count -gt 0) { $args += $ExtraArgs }
-  $args += @("--headless", "--path", $RootDir.Path, "--script", $scriptPath)
+    Write-Host "--- RUN $t"
+    $args = @()
+    if ($ExtraArgs.Count -gt 0) { $args += $ExtraArgs }
+    $args += @("--headless", "--path", $RootDir.Path, "--script", $scriptPath)
 
-  $res = Run-ProcessCapture -FilePath $GodotExe -Args $args -WorkingDirectory $RootDir.Path -TimeoutSec $TimeoutSec
-  if ($res.timed_out) {
+    $res = Run-ProcessCapture -FilePath $GodotExe -Args $args -WorkingDirectory $RootDir.Path -TimeoutSec $TimeoutSec
+    if ($res.timed_out) {
+      if (-not [string]::IsNullOrWhiteSpace($res.stdout)) { $res.stdout | Write-Host }
+      if (-not [string]::IsNullOrWhiteSpace($res.stderr)) { $res.stderr | Write-Host }
+      Write-Host ("TIMEOUT after {0}s: {1}" -f $TimeoutSec, $t)
+      $status = 1
+      continue
+    }
+
     if (-not [string]::IsNullOrWhiteSpace($res.stdout)) { $res.stdout | Write-Host }
     if (-not [string]::IsNullOrWhiteSpace($res.stderr)) { $res.stderr | Write-Host }
-    Write-Host ("TIMEOUT after {0}s: {1}" -f $TimeoutSec, $t)
-    $status = 1
-    continue
+
+    if ($res.exit_code -ne 0) { $status = 1 }
   }
-
-  if (-not [string]::IsNullOrWhiteSpace($res.stdout)) { $res.stdout | Write-Host }
-  if (-not [string]::IsNullOrWhiteSpace($res.stderr)) { $res.stderr | Write-Host }
-
-  if ($res.exit_code -ne 0) { $status = 1 }
+}
+finally {
+  Stop-FetcherFixtureServer -ServerHandle $fixtureHandle
 }
 
 exit $status
