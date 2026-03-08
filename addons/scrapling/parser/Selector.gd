@@ -97,6 +97,24 @@ func attrib(name: String = "") -> Variant:
 	return attrs.get(name)
 
 
+func find_similar() -> Array:
+	var parent_node: Variant = _current_node.get("parent")
+	if parent_node == null:
+		return []
+	var wanted_tag := String(_current_node.get("tag", ""))
+	var wanted_classes := _class_tokens(_current_node)
+	var items: Array = []
+	for sibling in (parent_node as Dictionary).get("children", []):
+		if sibling == _current_node:
+			continue
+		if String((sibling as Dictionary).get("tag", "")) != wanted_tag:
+			continue
+		if _class_tokens(sibling) != wanted_classes:
+			continue
+		items.append(sibling)
+	return _wrap_nodes(items)
+
+
 func parent() -> Variant:
 	var parent_node: Variant = _current_node.get("parent")
 	if parent_node == null:
@@ -391,3 +409,15 @@ func _node_to_html(node: Dictionary) -> String:
 
 
 
+
+
+func _class_tokens(node: Dictionary) -> Array:
+	var attrs: Dictionary = node.get("attrs", {})
+	var class_value := String(attrs.get("class", ""))
+	if class_value == "":
+		return []
+	var tokens: Array = []
+	for class_token in class_value.split(" ", false):
+		if class_token != "":
+			tokens.append(class_token)
+	return tokens
