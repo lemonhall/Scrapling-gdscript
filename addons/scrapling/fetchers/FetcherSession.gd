@@ -12,20 +12,20 @@ func _init(default_headers: Dictionary = {}) -> void:
 	_fetcher = FetcherScript.new(default_headers, _cookie_jar_path)
 
 
-func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}) -> Variant:
-	return _fetcher.fetch_get(url, params, headers)
+func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
+	return _fetcher.fetch_get(url, params, headers, cookies)
 
 
-func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}) -> Variant:
-	return _fetcher.fetch_post(url, body, params, headers)
+func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
+	return _fetcher.fetch_post(url, body, params, headers, cookies)
 
 
-func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}) -> Variant:
-	return _fetcher.fetch_put(url, body, params, headers)
+func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
+	return _fetcher.fetch_put(url, body, params, headers, cookies)
 
 
-func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}) -> Variant:
-	return _fetcher.fetch_delete(url, body, params, headers)
+func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}) -> Variant:
+	return _fetcher.fetch_delete(url, body, params, headers, cookies)
 
 
 func close() -> void:
