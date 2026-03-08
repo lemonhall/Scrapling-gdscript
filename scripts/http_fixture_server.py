@@ -45,9 +45,9 @@ class Handler(BaseHTTPRequestHandler):
                 for key, values in parse_qs(parsed.query).items()
             }
             headers = {}
-            token = self.headers.get("X-Test-Token")
-            if token is not None:
-                headers["X-Test-Token"] = token
+            for key, value in self.headers.items():
+                if key.lower().startswith("x-"):
+                    headers[key] = value
             payload = json.dumps({"query": query, "headers": headers}).encode("utf-8")
             self._send(200, payload)
             return

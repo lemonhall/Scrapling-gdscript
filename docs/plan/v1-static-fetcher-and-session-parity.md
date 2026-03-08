@@ -43,6 +43,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `tests/fetchers/static/test_proxy_rotator.gd`
 - `tests/fetchers/static/test_fetcher_proxy_flow.gd`
 - `tests/fetchers/static/test_fetcher_status_timeout.gd`
+- `tests/fetchers/static/test_fetcher_session_defaults.gd`
 - `scripts/http_fixture_server.py`
 
 ## Steps
@@ -82,6 +83,8 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - 2026-03-08 Green 8: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（origin fixture + proxy-a/proxy-b fixture + 真实代理链路）
 - 2026-03-08 Red 10: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_fetcher_status_timeout.gd -TimeoutSec 25` → `SCRIPT ERROR: Invalid call to function 'fetch_get (via call)'. Expected 6 argument(s).`
 - 2026-03-08 Green 9: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（404 + timeout + 全部现有静态 fetcher 覆盖）
+- 2026-03-08 Red 11: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_fetcher_session_defaults.gd -TimeoutSec 25` → `Invalid call to function 'new' in base 'GDScript'. Expected 1 argument(s).`
+- 2026-03-08 Green 10: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（`FetcherSession` 默认 headers / timeout / proxy_rotator）
 
 ## Notes
 
@@ -93,6 +96,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `ProxyRotator` 当前已接入 fetcher 请求层；`fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()` 支持 per-request `proxy` 和 `proxy_rotator`。
 - `scripts/run_godot_tests.ps1` 当前会自动拉起一个 origin fixture 和两个 proxy fixture，分别验证 per-request override 与 cyclic rotation 的真实链路。
 - `timeout_sec` 当前通过 `curl.exe --max-time <seconds>` 下沉到请求层；超时后当前返回 `status=0`、空 body。
+- `FetcherSession` 当前支持默认 `headers`、默认 `proxy`、默认 `proxy_rotator`、默认 `timeout_sec`，请求级参数优先级高于会话默认值。
 - POST JSON 当前通过临时文件 + `curl.exe --data-binary` 发送，避免 `OS.execute(...)` 直传 JSON 字面量时丢失引号。
 
 ## Risks
