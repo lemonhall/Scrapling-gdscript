@@ -72,6 +72,24 @@ func re_first(pattern: String) -> Variant:
 	return matches[0] if matches.size() > 0 else null
 
 
+func get_text(default = null):
+	var value := text().strip_edges()
+	if value == "" and default != null:
+		return default
+	return value
+
+
+func get_all_text() -> Array:
+	return [get_text(null)]
+
+
+func html_content() -> String:
+	var parts: Array = []
+	for child in _current_node.get("children", []):
+		parts.append(_node_to_html(child))
+	return "".join(parts)
+
+
 func attrib(name: String = "") -> Variant:
 	var attrs: Dictionary = _current_node.get("attrs", {})
 	if name == "":
@@ -350,5 +368,26 @@ func _text_matches(text_value: String, pattern: String, partial: bool, regex_mod
 	if partial:
 		return text_value.contains(pattern)
 	return text_value == pattern
+
+
+
+
+func _node_to_html(node: Dictionary) -> String:
+	var parts: Array = []
+	var tag := String(node.get("tag", ""))
+	if tag != "":
+		parts.append("<" + tag)
+		var attrs: Dictionary = node.get("attrs", {})
+		for key in attrs.keys():
+			parts.append(" %s=\"%s\"" % [String(key), String(attrs[key])])
+		parts.append(">")
+	for segment in node.get("text_segments", []):
+		parts.append(String(segment))
+	for child in node.get("children", []):
+		parts.append(_node_to_html(child))
+	if tag != "":
+		parts.append("</" + tag + ">")
+	return "".join(parts)
+
 
 

@@ -17,21 +17,21 @@ func _init() -> void:
 		return
 
 	var first_price: Variant = prices[0]
-	if not T.require_true(self, first_price.has_method("get"), "Selector must expose get()"):
+	if not T.require_true(self, first_price.has_method("get_text"), "Selector must expose get_text()"):
 		return
-	if not T.require_true(self, first_price.has_method("getall"), "Selector must expose getall()"):
+	if not T.require_true(self, first_price.has_method("get_all_text"), "Selector must expose get_all_text()"):
 		return
 	if not T.require_true(self, first_price.has_method("html_content"), "Selector must expose html_content()"):
 		return
 
-	if not T.require_eq(self, String(first_price.call("get")).strip_edges(), "$10.99", "Unexpected get() result for first price"):
+	if not T.require_eq(self, String(first_price.call("get_text", null)).strip_edges(), "$10.99", "Unexpected get_text() result for first price"):
 		return
-	var all_values: Variant = first_price.call("getall")
-	if not T.require_true(self, all_values is Array, "getall() must return Array"):
+	var all_values: Variant = first_price.call("get_all_text")
+	if not T.require_true(self, all_values is Array, "get_all_text() must return Array"):
 		return
-	if not T.require_eq(self, all_values.size(), 1, "getall() must return one value for single node"):
+	if not T.require_eq(self, all_values.size(), 1, "get_all_text() must return one value for single node"):
 		return
-	if not T.require_eq(self, String(all_values[0]).strip_edges(), "$10.99", "Unexpected getall()[0] result"):
+	if not T.require_eq(self, String(all_values[0]).strip_edges(), "$10.99", "Unexpected get_all_text()[0] result"):
 		return
 
 	var products: Variant = page.call("css", "article.product")
@@ -43,3 +43,5 @@ func _init() -> void:
 		return
 
 	T.pass_and_quit(self)
+
+
