@@ -23,7 +23,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 
 1. `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static` 返回 exit code `0`。
 2. 本地 fixture server 上的请求、响应、cookie 和记忆状态均符合断言。
-3. 代理轮换至少覆盖循环策略与每请求覆盖两类行为。
+3. 代理轮换至少覆盖循环策略、自定义 strategy 与每请求覆盖三类行为。
 4. 反作弊条款：不得把响应写死在测试中；测试必须经过真实 HTTP 请求链路。
 
 ## Files
@@ -43,6 +43,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `tests/fetchers/static/test_fetcher_cookies.gd`
 - `tests/fetchers/static/test_fetcher_session.gd`
 - `tests/fetchers/static/test_proxy_rotator.gd`
+- `tests/fetchers/static/test_proxy_rotator_strategy.gd`
 - `tests/fetchers/static/test_fetcher_proxy_flow.gd`
 - `tests/fetchers/static/test_fetcher_status_timeout.gd`
 - `tests/fetchers/static/test_fetcher_session_defaults.gd`
@@ -98,6 +99,8 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - 2026-03-08 Red 14: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_fetcher_response_headers.gd -TimeoutSec 25` → `FAIL: FetcherResponse must expose get_headers()`
 - 2026-03-08 Green 13: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（`FetcherResponse.get_headers()` + `get_header()`）
 - 2026-03-08 Green 14: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_async_fetcher_methods.gd -TimeoutSec 25` → `PASS` / exit code `0`（补齐 `AsyncFetcher` 的 POST / PUT / DELETE 覆盖）
+- 2026-03-08 Red 15: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_proxy_rotator_strategy.gd -TimeoutSec 25` → `FAIL: ProxyRotator._init() 缺少 strategy 参数 / 缺少自省接口`
+- 2026-03-08 Green 15: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0`（`ProxyRotator` custom strategy + `get_proxies()` + `size()` + `_to_string()`）
 
 ## Notes
 
@@ -106,7 +109,7 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - 当前 `headers` 通过重复 `-H` 传给 `curl.exe`，`params` 通过 URL query string 显式拼接并做 `uri_encode()`。
 - `FetcherSession` 当前通过 `curl.exe -b/-c <cookie-jar>` 实现跨请求 cookie 持久化。
 - 显式 `cookies` 当前通过额外 `curl.exe -b "k=v; ..."` 透传到请求。
-- `ProxyRotator` 当前已接入 fetcher 请求层；`fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()` 支持 per-request `proxy` 和 `proxy_rotator`。
+- `ProxyRotator` 当前已接入 fetcher 请求层；`fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()` 支持 per-request `proxy` 和 `proxy_rotator`，并补齐 cyclic / custom strategy、自省接口与字符串表示。
 - `scripts/run_godot_tests.ps1` 当前会自动拉起一个 origin fixture 和两个 proxy fixture，分别验证 per-request override 与 cyclic rotation 的真实链路。
 - `timeout_sec` 当前通过 `curl.exe --max-time <seconds>` 下沉到请求层；超时后当前返回 `status=0`、空 body。
 - `FetcherSession` 当前支持默认 `headers`、默认 `proxy`、默认 `proxy_rotator`、默认 `timeout_sec`，请求级参数优先级高于会话默认值。
