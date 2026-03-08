@@ -54,6 +54,10 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `tests/fetchers/static/test_async_fetcher_session_methods.gd`
 - `tests/fetchers/static/test_async_fetcher_session_defaults.gd`
 - `tests/fetchers/static/test_async_fetcher_response_metadata.gd`
+- `tests/fetchers/static/test_fetcher_retry_with_rotator.gd`
+- `tests/fetchers/static/test_async_fetcher_retry_with_rotator.gd`
+- `tests/fetchers/static/test_fetcher_session_retry_defaults.gd`
+- `tests/fetchers/static/test_async_fetcher_session_retry_defaults.gd`
 - `tests/fetchers/static/test_fetcher_response_headers.gd`
 - `scripts/http_fixture_server.py`
 
@@ -110,6 +114,11 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - 2026-03-08 Green 17: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_async_fetcher_session_methods.gd -TimeoutSec 25` → `PASS` / exit code `0`（补齐 `AsyncFetcherSession` 的 POST / PUT / DELETE 覆盖）
 - 2026-03-08 Green 18: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_async_fetcher_session_defaults.gd -TimeoutSec 25` → `PASS` / exit code `0`（补齐 `AsyncFetcherSession` 默认 headers / timeout / proxy_rotator 覆盖）
 - 2026-03-08 Green 19: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_async_fetcher_response_metadata.gd -TimeoutSec 25` → `PASS` / exit code `0`（补齐 `AsyncFetcher` 的 response-headers / 404 / timeout 覆盖）
+- 2026-03-08 Red 20: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_fetcher_retry_with_rotator.gd -TimeoutSec 25` → `SCRIPT ERROR: Fetcher.fetch_get() 缺少 retries / retry_delay_sec 参数`
+- 2026-03-08 Green 20: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_fetcher_retry_with_rotator.gd -TimeoutSec 25` → `PASS` / exit code `0`（`Fetcher` 每请求 retries + rotator failover）
+- 2026-03-08 Green 21: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_async_fetcher_retry_with_rotator.gd -TimeoutSec 25` → `PASS` / exit code `0`（`AsyncFetcher` 每请求 retries + rotator failover）
+- 2026-03-08 Green 22: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_fetcher_session_retry_defaults.gd -TimeoutSec 25` → `PASS` / exit code `0`（`FetcherSession` 默认 retries / retry_delay_sec）
+- 2026-03-08 Green 23: `powershell -File scripts/run_godot_tests.ps1 -One tests\fetchers\static\test_async_fetcher_session_retry_defaults.gd -TimeoutSec 25` → `PASS` / exit code `0`（`AsyncFetcherSession` 默认 retries / retry_delay_sec）
 
 ## Notes
 
@@ -122,6 +131,8 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
 - `scripts/run_godot_tests.ps1` 当前会自动拉起一个 origin fixture 和两个 proxy fixture，分别验证 per-request override 与 cyclic rotation 的真实链路。
 - `timeout_sec` 当前通过 `curl.exe --max-time <seconds>` 下沉到请求层；超时后当前返回 `status=0`、空 body。
 - `FetcherSession` 当前支持默认 `headers`、默认 `proxy`、默认 `proxy_rotator`、默认 `timeout_sec`，请求级参数优先级高于会话默认值。
+- `Fetcher` / `AsyncFetcher` 当前支持每请求 `retries` 与 `retry_delay_sec`；网络失败时会重新解析 rotator，从而实现真实代理 failover。
+- `FetcherSession` / `AsyncFetcherSession` 当前支持默认 `retries` 与默认 `retry_delay_sec`，请求级参数优先级高于会话默认值。
 - `AsyncFetcher` 当前以后台 `Thread` 包装同步 `Fetcher`，主线程通过 `process_frame` 轮询完成状态；已覆盖 `fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()`。
 - `AsyncFetcher` 当前已补齐 `fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()` 的真实 HTTP 测试覆盖。
 - `AsyncFetcher` 当前已补齐 response-headers、`404` 与 `timeout` 的真实 HTTP 测试覆盖。

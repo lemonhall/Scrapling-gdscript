@@ -25,24 +25,24 @@ class RequestJob:
 var _fetcher: Variant = null
 
 
-func _init(default_headers: Dictionary = {}, cookie_jar_path: String = "") -> void:
-	_fetcher = FetcherScript.new(default_headers, cookie_jar_path)
+func _init(default_headers: Dictionary = {}, cookie_jar_path: String = "", default_retries: int = 3, default_retry_delay_sec: float = 1.0) -> void:
+	_fetcher = FetcherScript.new(default_headers, cookie_jar_path, default_retries, default_retry_delay_sec)
 
 
-func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
-	return await _run_async("fetch_get", [url, params, headers, cookies, proxy, proxy_rotator, timeout_sec])
+func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0, retries: int = -1, retry_delay_sec: float = -1.0) -> Variant:
+	return await _run_async("fetch_get", [url, params, headers, cookies, proxy, proxy_rotator, timeout_sec, retries, retry_delay_sec])
 
 
-func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
-	return await _run_async("fetch_post", [url, body, params, headers, cookies, proxy, proxy_rotator, timeout_sec])
+func fetch_post(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0, retries: int = -1, retry_delay_sec: float = -1.0) -> Variant:
+	return await _run_async("fetch_post", [url, body, params, headers, cookies, proxy, proxy_rotator, timeout_sec, retries, retry_delay_sec])
 
 
-func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
-	return await _run_async("fetch_put", [url, body, params, headers, cookies, proxy, proxy_rotator, timeout_sec])
+func fetch_put(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0, retries: int = -1, retry_delay_sec: float = -1.0) -> Variant:
+	return await _run_async("fetch_put", [url, body, params, headers, cookies, proxy, proxy_rotator, timeout_sec, retries, retry_delay_sec])
 
 
-func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0) -> Variant:
-	return await _run_async("fetch_delete", [url, body, params, headers, cookies, proxy, proxy_rotator, timeout_sec])
+func fetch_delete(url: String, body: String = "", params: Dictionary = {}, headers: Dictionary = {}, cookies: Dictionary = {}, proxy: Variant = null, proxy_rotator: Variant = null, timeout_sec: float = -1.0, retries: int = -1, retry_delay_sec: float = -1.0) -> Variant:
+	return await _run_async("fetch_delete", [url, body, params, headers, cookies, proxy, proxy_rotator, timeout_sec, retries, retry_delay_sec])
 
 
 func _run_async(method_name: String, args: Array) -> Variant:
