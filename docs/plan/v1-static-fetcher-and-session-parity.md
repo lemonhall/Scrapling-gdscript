@@ -54,10 +54,12 @@ Goal: 交付静态 HTTP 抓取、会话持久化和代理轮换能力，为 spid
    - 启动 fixture server，运行完整抓取流程并验证导出的响应对象。
 
 ## Evidence`n`n- 2026-03-08 Red: `$env:SCRAPLING_FIXTURE_BASE_URL='http://127.0.0.1:8765'; powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 20` → `FAIL: Missing res://addons/scrapling/fetchers/Fetcher.gd`
-- 2026-03-08 Green: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0` (fixture server + fetch_get)`n`n## Notes`n`n- 由于 Godot `Object.get` 冲突，当前静态 fetcher 使用 Godot-safe alias：`fetch_get()`。`n`n## Risks
+- 2026-03-08 Green: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `PASS` / exit code `0` (fixture server + fetch_get)
+- 2026-03-08 Red 2: `powershell -File scripts/run_godot_tests.ps1 -Suite fetchers-static -TimeoutSec 25` → `FAIL: Fetcher must expose fetch_post()``n`n## Notes`n`n- 由于 Godot `Object.get` 冲突，当前静态 fetcher 使用 Godot-safe alias：`fetch_get()`。`n`n## Risks
 
 - Godot 原生 HTTP 能力与 Python `curl_cffi` 差异较大，需要先定义“可观测行为等价层”。
 - Windows 上本地 fixture server 的启动、端口清理和超时需要脚本化处理。
+
 
 
 
