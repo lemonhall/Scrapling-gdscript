@@ -26,8 +26,8 @@
 - 已完成：`Godot 4.6` 工程骨架、插件元数据、PowerShell headless 测试脚本、foundation smoke test。
 - 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite foundation` 返回 `PASS`。
 - 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite parser` 返回 `PASS`，Parser / Selector 核心等价层已打通。
-- 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite fetchers-static` 返回 `PASS`，当前已覆盖本地 fixture server 下的 `fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()`，以及 `headers` / `params` 的真实 HTTP 链路。
-- 进行中：Static Fetcher 的 session / proxy / cookies / 更完整错误处理仍待补齐。
+- 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite fetchers-static` 返回 `PASS`，当前已覆盖本地 fixture server 下的 `fetch_get()` / `fetch_post()` / `fetch_put()` / `fetch_delete()`、`headers` / `params`，以及 `FetcherSession` 的 cookie 持久化链路。
+- 进行中：Static Fetcher 的 proxy / 显式 cookies API / 更完整错误处理仍待补齐。
 
 ## 当前目录
 

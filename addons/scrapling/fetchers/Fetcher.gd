@@ -5,6 +5,14 @@ const FetcherResponseScript := preload("res://addons/scrapling/fetchers/FetcherR
 const STATUS_MARKER := "__STATUS__"
 const CURL_JSON_HEADER := "Content-Type: application/json"
 
+var _default_headers: Dictionary = {}
+var _cookie_jar_path := ""
+
+
+func _init(default_headers: Dictionary = {}, cookie_jar_path: String = "") -> void:
+	_default_headers = default_headers.duplicate(true)
+	_cookie_jar_path = cookie_jar_path
+
 
 func fetch_get(url: String, params: Dictionary = {}, headers: Dictionary = {}) -> Variant:
 	return _curl_request(url, "GET", "", params, headers)
@@ -26,7 +34,8 @@ func _curl_request(url: String, method: String, body: String, params: Dictionary
 	var output: Array = []
 	var request_url := _append_query_params(url, params)
 	var args: Array = ["-sS", "-X", method]
-	_append_header_args(args, headers)
+	_append_header_args(args, _merge_headers(headers))
+	_append_cookie_jar_args(args)
 	var temp_body_path := ""
 	if _should_send_body(method, body):
 		temp_body_path = _write_request_body_file(body)
@@ -82,4 +91,17 @@ func _append_header_args(args: Array, headers: Dictionary) -> void:
 		return
 	for key in headers.keys():
 		args.append_array(["-H", "%s: %s" % [str(key), str(headers[key])]])
+
+
+func _merge_headers(headers: Dictionary) -> Dictionary:
+	var merged := _default_headers.duplicate(true)
+	for key in headers.keys():
+		merged[key] = headers[key]
+	return merged
+
+
+func _append_cookie_jar_args(args: Array) -> void:
+	if _cookie_jar_path == "":
+		return
+	args.append_array(["-b", _cookie_jar_path, "-c", _cookie_jar_path])
 

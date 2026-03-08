@@ -1,13 +1,17 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.cookies import SimpleCookie
 import argparse
 import json
 from urllib.parse import parse_qs, urlparse
 
 
 class Handler(BaseHTTPRequestHandler):
-    def _send(self, status: int, body: bytes, content_type: str = "application/json; charset=utf-8") -> None:
+    def _send(self, status: int, body: bytes, content_type: str = "application/json; charset=utf-8", extra_headers: dict | None = None) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
+        if extra_headers:
+            for key, value in extra_headers.items():
+                self.send_header(key, value)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -28,6 +32,19 @@ class Handler(BaseHTTPRequestHandler):
             if token is not None:
                 headers["X-Test-Token"] = token
             payload = json.dumps({"query": query, "headers": headers}).encode("utf-8")
+            self._send(200, payload)
+            return
+        if parsed.path == "/set-cookie":
+            payload = json.dumps({"set": True, "name": "session_id"}).encode("utf-8")
+            self._send(200, payload, extra_headers={"Set-Cookie": "session_id=abc123; Path=/"})
+            return
+        if parsed.path == "/check-cookie":
+            cookie = SimpleCookie()
+            cookie.load(self.headers.get("Cookie", ""))
+            session_id = ""
+            if "session_id" in cookie:
+                session_id = cookie["session_id"].value
+            payload = json.dumps({"session_id": session_id}).encode("utf-8")
             self._send(200, payload)
             return
         payload = json.dumps({"error": "not found", "path": self.path}).encode("utf-8")
