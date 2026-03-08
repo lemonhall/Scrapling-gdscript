@@ -40,6 +40,22 @@ func text() -> String:
 	return _collect_text(_current_node).strip_edges()
 
 
+func find_by_text(query: String, partial: bool = false, first_match: bool = true) -> Variant:
+	var matches := _find_leaf_text_matches(_current_node, query, partial, false)
+	var wrapped := _wrap_nodes(matches)
+	if first_match:
+		return wrapped[0] if wrapped.size() > 0 else null
+	return wrapped
+
+
+func find_by_regex(pattern: String, first_match: bool = true) -> Variant:
+	var matches := _find_leaf_text_matches(_current_node, pattern, false, true)
+	var wrapped := _wrap_nodes(matches)
+	if first_match:
+		return wrapped[0] if wrapped.size() > 0 else null
+	return wrapped
+
+
 func attrib(name: String = "") -> Variant:
 	var attrs: Dictionary = _current_node.get("attrs", {})
 	if name == "":
@@ -293,3 +309,29 @@ func _collect_text(node: Dictionary) -> String:
 	for child in node.get("children", []):
 		parts.append(_collect_text(child))
 	return " ".join(parts).strip_edges()
+
+
+func _find_leaf_text_matches(node: Dictionary, pattern: String, partial: bool, regex_mode: bool) -> Array:
+	var child_matches: Array = []
+	for child in node.get("children", []):
+		child_matches.append_array(_find_leaf_text_matches(child, pattern, partial, regex_mode))
+	if String(node.get("tag", "")) == "document":
+		return child_matches
+	var text_value := _collect_text(node).strip_edges()
+	var matched := _text_matches(text_value, pattern, partial, regex_mode)
+	if matched and child_matches.is_empty():
+		return [node]
+	return child_matches
+
+
+func _text_matches(text_value: String, pattern: String, partial: bool, regex_mode: bool) -> bool:
+	if regex_mode:
+		var regex := RegEx.new()
+		var err := regex.compile(pattern)
+		if err != OK:
+			return false
+		return regex.search(text_value) != null
+	if partial:
+		return text_value.contains(pattern)
+	return text_value == pattern
+

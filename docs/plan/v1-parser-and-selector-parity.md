@@ -63,10 +63,12 @@ Goal: 交付 `Selector` / `Selectors` 核心能力，使固定 HTML fixtures 上
 - 2026-03-08 Red 2: `powershell -File scripts/run_godot_tests.ps1 -Suite parser` → `FAIL: Selector must expose parent()`
 - 2026-03-08 Green 2: `powershell -File scripts/run_godot_tests.ps1 -Suite parser` → `PASS` / exit code `0` (smoke + navigation)
 - 2026-03-08 Red 3: `powershell -File scripts/run_godot_tests.ps1 -Suite parser` → `FAIL: Selector must expose find_by_text()`
+- 2026-03-08 Green 3: `powershell -File scripts/run_godot_tests.ps1 -Suite parser` → `PASS` / exit code `0` (smoke + navigation + text search)
 ## Risks
 
 - `lxml` / `cssselect` 语义在 GDScript 中没有现成对照物，必须先锁定支持子集再扩展。
 - XPath 支持范围如果不先定义，会导致计划漂移；需要以源测试覆盖范围为首版边界。
+
 
 
 
