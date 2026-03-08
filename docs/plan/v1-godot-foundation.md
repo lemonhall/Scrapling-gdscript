@@ -2,6 +2,8 @@
 
 Goal: 建立 `Godot 4.6` 工程骨架、Windows PowerShell 测试脚本、最小 headless 测试回路，为后续所有能力域提供稳定宿主。
 
+Update 2026-03-08: 采用与 `openagentic-sdk-gdscript` 一致的“直接运行 `test_*.gd`”模式，因此本 slice 不再单独引入 `tests/test_runner.gd`。
+
 ## PRD Trace
 
 - `REQ-0001-012`
@@ -29,9 +31,10 @@ Goal: 建立 `Godot 4.6` 工程骨架、Windows PowerShell 测试脚本、最小
 
 - `project.godot`
 - `addons/scrapling/plugin.cfg`
+- `addons/scrapling/plugin.gd`
 - `addons/scrapling/Scrapling.gd`
 - `tests/foundation/test_project_boot.gd`
-- `tests/test_runner.gd`
+- `tests/_test_util.gd`
 - `scripts/run_godot_tests.ps1`
 
 ## Steps
@@ -50,6 +53,11 @@ Goal: 建立 `Godot 4.6` 工程骨架、Windows PowerShell 测试脚本、最小
    - 把路径发现、suite 选择和超时控制从测试脚本中抽成纯函数或独立段落。
 6. E2E 测试
    - 仍使用 headless Godot 作为 E2E；验证从命令调用到测试输出的整条链路。
+
+## Evidence
+
+- 2026-03-08 Red: `powershell -File scripts/run_godot_tests.ps1 -Suite foundation` → `FAIL: Missing res://project.godot`
+- 2026-03-08 Green: `powershell -File scripts/run_godot_tests.ps1 -Suite foundation` → `PASS` / exit code `0`
 
 ## Risks
 

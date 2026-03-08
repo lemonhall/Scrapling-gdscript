@@ -1,6 +1,6 @@
 # Scrapling-gdscript
 
-目标：在 `Godot 4.6` / `GDScript` 中复刻 `Scrapling` 的可观察能力，让 Godot 社区可以在纯 GDScript 工程里完成与源项目等价的 HTML 解析、静态/动态抓取、爬虫调度、交互式工具和 AI/MCP 工作流。
+目标：在 `Godot 4.6` / `GDScript` 中复刻 `Scrapling` 的核心能力，让 Godot 社区可以在纯 GDScript 工程中完成与源项目等价的 HTML 解析、静态/动态抓取、爬虫调度、交互式工具和 AI / MCP 工作流。
 
 ## 基线
 
@@ -16,12 +16,31 @@
 - 总体 PRD：`docs/prd/PRD-0001-scrapling-parity.md`
 - 源项目能力盘点：`docs/analysis/source-capability-inventory.md`
 - 首轮计划索引：`docs/plan/v1-index.md`
+- 当前基础设施计划：`docs/plan/v1-godot-foundation.md`
+- 下一刀：`docs/plan/v1-parser-and-selector-parity.md`
 
 ## 当前状态
 
-- 已完成：文档基线、源项目能力清单、PRD、v1 计划矩阵。
-- 未开始：Godot 工程脚手架、测试基线、任何功能实现。
-- 下一里程碑：`docs/plan/v1-godot-foundation.md`
+- 已完成：文档基线、源项目能力盘点、PRD、v1 计划矩阵。
+- 已完成：`Godot 4.6` 工程骨架、插件元数据、PowerShell headless 测试脚本、foundation smoke test。
+- 已验证：`powershell -File .\scripts\run_godot_tests.ps1 -Suite foundation` 返回 `PASS`。
+- 进行中：Parser / Selector 等价层尚未开始实现。
+
+## 当前目录
+
+- `addons/scrapling/`：插件与实现入口。
+- `tests/`：按 suite 拆分的 Godot headless 测试。
+- `scripts/`：PowerShell 测试脚本与后续开发脚本。
+- `docs/`：愿景、PRD、计划、变更通知单。
+
+## 开发命令
+
+- 运行 foundation 测试：
+  - `powershell -File .\scripts\run_godot_tests.ps1 -Suite foundation`
+- 指定 Godot 可执行文件：
+  - `powershell -File .\scripts\run_godot_tests.ps1 -GodotExe "E:\Godot_v4.6-stable_win64.exe\Godot_v4.6-stable_win64_console.exe" -Suite foundation`
+- 运行单个测试：
+  - `powershell -File .\scripts\run_godot_tests.ps1 -One tests\foundation\test_project_boot.gd`
 
 ## 目标能力面
 
@@ -30,10 +49,11 @@
 - `Spider` / `Request` / `CrawlerEngine` / `CrawlResult` 风格的爬虫运行时。
 - 交互式 Shell、命令行工具、curl 转换、结果导出。
 - AI / MCP 侧的结构化提取与服务接口。
-- Windows PowerShell 友好的 `Godot 4.6` Headless 自动化测试。
+- Windows PowerShell 友好的 `Godot 4.6` headless 自动化测试。
 
-## 文档纪律
+## 开发纪律
 
 - 需求编号遵循 `REQ-0001-NNN`。
 - 计划文件遵循 `docs/plan/v1-*.md`。
+- 每个完成的 slice 都要先验证，再 `commit + push`。
 - 施工中若发现设计偏差，新增 `docs/ecn/ECN-NNNN-*.md` 并同步更新 PRD 与计划。
