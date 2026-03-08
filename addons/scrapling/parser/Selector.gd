@@ -47,6 +47,52 @@ func attrib(name: String = "") -> Variant:
 	return attrs.get(name)
 
 
+func parent() -> Variant:
+	var parent_node: Variant = _current_node.get("parent")
+	if parent_node == null:
+		return null
+	if String((parent_node as Dictionary).get("tag", "")) == "document":
+		return null
+	return self.get_script().new("", parent_node, _document_root)
+
+
+func children() -> Array:
+	return _wrap_nodes(_current_node.get("children", []))
+
+
+func siblings() -> Array:
+	var parent_node: Variant = _current_node.get("parent")
+	if parent_node == null:
+		return []
+	var items: Array = []
+	for sibling in (parent_node as Dictionary).get("children", []):
+		if sibling != _current_node:
+			items.append(sibling)
+	return _wrap_nodes(items)
+
+
+func previous() -> Variant:
+	var parent_node: Variant = _current_node.get("parent")
+	if parent_node == null:
+		return null
+	var children_nodes: Array = (parent_node as Dictionary).get("children", [])
+	var index := children_nodes.find(_current_node)
+	if index <= 0:
+		return null
+	return self.get_script().new("", children_nodes[index - 1], _document_root)
+
+
+func next() -> Variant:
+	var parent_node: Variant = _current_node.get("parent")
+	if parent_node == null:
+		return null
+	var children_nodes: Array = (parent_node as Dictionary).get("children", [])
+	var index := children_nodes.find(_current_node)
+	if index < 0 or index + 1 >= children_nodes.size():
+		return null
+	return self.get_script().new("", children_nodes[index + 1], _document_root)
+
+
 func _wrap_nodes(nodes: Array) -> Array:
 	var wrapped: Array = []
 	for node in nodes:
@@ -93,10 +139,12 @@ func _make_node(tag: String, attrs: Dictionary) -> Dictionary:
 		"attrs": attrs.duplicate(),
 		"children": [],
 		"text_segments": [],
+		"parent": null,
 	}
 
 
 func _append_child(parent: Dictionary, child: Dictionary) -> void:
+	child["parent"] = parent
 	var children: Array = parent.get("children", [])
 	children.append(child)
 	parent["children"] = children
@@ -245,6 +293,3 @@ func _collect_text(node: Dictionary) -> String:
 	for child in node.get("children", []):
 		parts.append(_collect_text(child))
 	return " ".join(parts).strip_edges()
-
-
-
